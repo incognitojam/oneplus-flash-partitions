@@ -67,22 +67,19 @@ critical_partitions=(
 adb reboot bootloader
 fastboot set_active $SLOT
 
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-	# iterate partitions
-	for i in "${partitions[@]}"
-	do
-		src=$PARTITION_IMAGES/$i.img
-		if [ -f "$src" ]; then
-			echo "Writing $i to slot $SLOT"
-			# echo "fastboot flash $i"_"$SLOT $src"
-			fastboot flash $i"_"$SLOT $src || echo "Failed to flash $i to slot $SLOT"
-		else 
-			# file not in extracted payload...
-			echo "$src not found in images folder, skipping..."
-		fi
-	done
-fi
+# iterate partitions
+for i in "${partitions[@]}"
+do
+	src=$PARTITION_IMAGES/$i.img
+	if [ -f "$src" ]; then
+		echo "Writing $i to slot $SLOT"
+		# echo "fastboot flash $i"_"$SLOT $src"
+		fastboot flash $i"_"$SLOT $src || echo "Failed to flash $i to slot $SLOT"
+	else 
+		# file not in extracted payload...
+		echo "$src not found in images folder, skipping..."
+	fi
+done
 
 
 #######################
