@@ -18,6 +18,8 @@ PARTITION_IMAGES=$IMAGES_PATH/oxygenos$ANDROID_VERSION/
 RECOVERY_IMAGE=$IMAGES_PATH/twrp/twrp-3.6.0_9-0-fajita.img
 
 
+# note: partitions may be different in old/new OS versions...
+# msm download tool is probably more reliable.
 partitions=(
 	LOGO
 	aop
