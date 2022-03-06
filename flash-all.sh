@@ -94,11 +94,9 @@ fastboot boot $RECOVERY_IMAGE
 read -p "Wait for recovery to start before continuing. Continue [Y/N]?" -n 1 -r
 echo ""
 
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
+if [[ $REPLY =~ ^[Yy]$ ]]; then
 	# iterate critical_partitions
-	for i in "${critical_partitions[@]}"
-	do
+	for i in "${critical_partitions[@]}"; do
 		src=$PARTITION_IMAGES/$i.img
 		if [ -f "$src" ]; then
 			# try push file to /tmp
