@@ -2,12 +2,14 @@
 
 IMAGES_PATH=$HOME/android/images
 
-ANDROID_VERSION=11
+# slot to write images to
+# TODO: support flashing both slots at one time
 SLOT=a
 
 # path to folder containing partition images
 # e.g. from extracted OTA
-PARTITION_IMAGES=$IMAGES_PATH/images-oxygenos$ANDROID_VERSION
+ANDROID_VERSION=11
+PARTITION_IMAGES=$IMAGES_PATH/oxygenos$ANDROID_VERSION/
 
 # path to recovery image, e.g. twrp-3.x.x-fajita.img
 # twrp-3.6.0_9-0 works with OxygenOS 11
