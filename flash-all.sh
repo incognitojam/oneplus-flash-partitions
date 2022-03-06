@@ -106,6 +106,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 				echo "Pushed $src to /tmp"
 				echo "Writing $i to slot $SLOT"
 				# try "flash" img to partition
+				# TODO: maybe we don't need to append $SLOT for /dev/block/bootdevice/by-name (as opposed to /dev/block/by-name)
 				adb shell dd if=/tmp/$i.img of=/dev/block/bootdevice/by-name/$i_$SLOT || echo "Failed to flash $i to slot $SLOT"
 				echo "Deleting $i from /tmp"
 				# delete file after flashing
