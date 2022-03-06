@@ -65,9 +65,7 @@ critical_partitions=(
 #####################
 
 adb reboot bootloader
-
-read -p "Wait for fastboot before continuing. Continue [Y/N]?" -n 1 -r
-echo ""
+fastboot set_active $SLOT
 
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
