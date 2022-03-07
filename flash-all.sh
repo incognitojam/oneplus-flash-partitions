@@ -4,7 +4,7 @@ IMAGES_PATH=$HOME/android/images
 
 # slot to write images to
 # TODO: support flashing both slots at one time
-SLOT=a
+SLOT=b
 
 # path to folder containing partition images
 # e.g. from extracted OTA
