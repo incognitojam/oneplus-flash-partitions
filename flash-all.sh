@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# tool to help flash partitions using images, without reverting to the msm download tool to get
+# the phone to a known good state.
+
+# TODO:
+# - figure out which partitions are important - do we really need to reflash everything
+#   when it stops booting? probably not..
+# - maybe download OTA packages
+# - flash both slots at same time
+
 # example file tree
 # ~
 #   android
@@ -58,7 +67,6 @@ partitions=(
 	fw_ufs6
 	fw_ufs7
 	fw_ufs8
-	india
 	mdtp
 	mdtpsecapp
 	modem
@@ -71,18 +79,21 @@ partitions=(
 	vbmeta
 	vendor
 )
-# reserve
 
+# NOTE: india didn't seem to work as normal partition
 critical_partitions=(
 	abl
 	cmnlib64
 	cmnlib
 	devcfg
 	hyp
+	india
 	keymaster
 	xbl
 	xbl_config
 )
+
+# NOTE: i'm not sure if we should overwrite "reserve" partition too...
 
 
 #####################
@@ -101,15 +112,15 @@ for i in "${partitions[@]}"; do
 	echo -n "	Checking file exists... "
 	if [ -f "$src" ]; then
 		echo "found!"
-		echo "	Writing $i to slot $SLOT..."
-		if ! fastboot flash $i"_"$SLOT $src; then
+		echo "	Writing $i..."
+		if ! fastboot flash $i $src ; then
 			echo "	Failed!"
 		fi
-		echo ""
 	else
 		# file not in extracted payload...
 		echo "not found"
 	fi
+	echo ""
 done
 
 echo "Finished writing normal partitions"
@@ -141,10 +152,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo -n "	Pushing $src to /tmp... "
 			if adb push $src /tmp; then
 				echo "done"
-				echo -n "	Writing $i to slot $SLOT... "
+				echo -n "	Writing $i... "
 				# try "flash" img to partition
-				# TODO: maybe we don't need to append $SLOT for /dev/block/bootdevice/by-name (as opposed to /dev/block/by-name)
-				adb shell dd if=/tmp/$i.img of=/dev/block/bootdevice/by-name/$i_$SLOT || echo "failed" && echo "done"
+				# FIXED: maybe we don't need to append $SLOT for /dev/block/bootdevice/by-name (as opposed to /dev/block/by-name)
+				adb shell dd if=/tmp/$i.img of=/dev/block/bootdevice/by-name/$i || echo "failed" && echo "done"
 				echo "	Deleting $i from /tmp... "
 				# delete file after flashing
 				adb shell rm /tmp/$i.img || echo "failed" && echo "done"
@@ -155,12 +166,15 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 			# file not in extracted payload...
 			echo "not found"
 		fi
+		echo ""
 	done
 fi
 
 echo "Finished flashing to slot $SLOT"
+echo ""
 
-echo "Do you want to reboot?"
+read -p "Do you want to reboot? [Y/N]" -n 1 -r
+echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
 	adb reboot
 fi
