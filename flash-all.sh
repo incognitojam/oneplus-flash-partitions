@@ -29,7 +29,7 @@ IMAGES_PATH=$HOME/android/images/fajita
 
 # slot to write images to
 # TODO: support flashing both slots at one time
-SLOT=b
+SLOT=a
 
 # path to folder containing partition images
 # e.g. from extracted OTA
@@ -159,3 +159,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo "Finished flashing to slot $SLOT"
+
+echo "Do you want to reboot?"
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+	adb reboot
+fi
