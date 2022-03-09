@@ -3,6 +3,8 @@
 # tool to help flash partitions using images, without reverting to the msm download tool to get
 # the phone to a known good state.
 
+# use payload_dumper to get imgs from payload.bin
+
 # TODO:
 # - figure out which partitions are important - do we really need to reflash everything
 #   when it stops booting? probably not..
@@ -14,14 +16,8 @@
 #   android
 #     images
 #       fajita
-#         oxygenos9
-#           abl.img
-#           aop.img
-#           bluetooth.img
-#           boot.img
-#           ...
-#           xbl.img
-#         oxygenos11
+#         OnePlus6TOxygen_34.J.61_OTA_0610_all_2109171644_7a4bfad9b1f940d5
+#           payload.bin
 #           abl.img
 #           aop.img
 #           bluetooth.img
@@ -33,6 +29,9 @@
 #           twrp-3.4.0-1-fajita.img
 #           ...
 
+# find from adb devices or fastboot devices
+DEVICE_SERIAL=6bf1ed7f
+
 # folder containing android system images...
 IMAGES_PATH=$HOME/android/images/fajita
 
@@ -42,12 +41,12 @@ SLOT=a
 
 # path to folder containing partition images
 # e.g. from extracted OTA
-PARTITION_IMAGES=$IMAGES_PATH/oxygenos11
+PARTITION_IMAGES=$IMAGES_PATH/oxygenos9
 
 # path to recovery image, e.g. twrp-3.x.x-fajita.img
 # twrp-3.6.0_9-0 works with OxygenOS 11
 # twrp-3.3.1-1 works with OxygenOS 9
-RECOVERY_IMAGE=$IMAGES_PATH/twrp/twrp-3.6.0_9-0-fajita.img
+RECOVERY_IMAGE=$IMAGES_PATH/twrp/twrp-3.3.1-1-fajita.img
 
 
 # note: partitions may be different in old/new OS versions...
@@ -89,9 +88,13 @@ critical_partitions=(
 	hyp
 	india
 	keymaster
-	xbl
+	reserve
+	tz
 	xbl_config
+	xbl
 )
+
+# india_a no such partition
 
 # NOTE: i'm not sure if we should overwrite "reserve" partition too...
 
@@ -102,8 +105,8 @@ critical_partitions=(
 
 echo "Preparing fastboot in slot $SLOT on the phone"
 echo ""
-adb reboot bootloader
-fastboot set_active $SLOT
+adb -s $DEVICE_SERIAL reboot bootloader
+fastboot -s $DEVICE_SERIAL set_active $SLOT
 
 # iterate partitions
 for i in "${partitions[@]}"; do
@@ -113,7 +116,7 @@ for i in "${partitions[@]}"; do
 	if [ -f "$src" ]; then
 		echo "found!"
 		echo "	Writing $i..."
-		if ! fastboot flash $i $src ; then
+		if ! fastboot -s $DEVICE_SERIAL flash $i $src ; then
 			echo "	Failed!"
 		fi
 	else
@@ -133,9 +136,9 @@ echo "Finished writing normal partitions"
 # TODO: figure out which normal partitions we need to flash before recovery can boot, and then
 # do all of the rest from recovery
 
-fastboot reboot bootloader
 echo "Starting recovery on the phone"
-fastboot boot $RECOVERY_IMAGE
+fastboot -s $DEVICE_SERIAL reboot bootloader
+fastboot -s $DEVICE_SERIAL boot $RECOVERY_IMAGE
 
 read -p "Wait for recovery to start before continuing. Continue [Y/N]?" -n 1 -r
 echo ""
@@ -150,15 +153,15 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo "found!"
 			# try push file to /tmp
 			echo -n "	Pushing $src to /tmp... "
-			if adb push $src /tmp; then
+			if adb -s $DEVICE_SERIAL push $src /tmp; then
 				echo "done"
 				echo -n "	Writing $i... "
 				# try "flash" img to partition
 				# FIXED: maybe we don't need to append $SLOT for /dev/block/bootdevice/by-name (as opposed to /dev/block/by-name)
-				adb shell dd if=/tmp/$i.img of=/dev/block/bootdevice/by-name/$i || echo "failed" && echo "done"
+				adb -s $DEVICE_SERIAL shell dd if=/tmp/$i.img of=/dev/block/bootdevice/by-name/$i bs=1m || echo "failed" && echo "done"
 				echo "	Deleting $i from /tmp... "
 				# delete file after flashing
-				adb shell rm /tmp/$i.img || echo "failed" && echo "done"
+				adb -s $DEVICE_SERIAL shell rm /tmp/$i.img || echo "failed" && echo "done"
 			else
 				echo "failed"
 			fi
