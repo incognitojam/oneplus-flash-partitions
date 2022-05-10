@@ -15,6 +15,13 @@
 # Copy env.sh.example to env.sh and modify as appropriate
 source env.sh
 
+# Calculate other slot
+if [[ $SLOT == "a" ]]; then
+	OTHER_SLOT="b"
+else
+	OTHER_SLOT="a"
+fi
+
 
 #####################
 # NORMAL PARTITIONS #
@@ -54,6 +61,8 @@ echo "Finished writing normal partitions"
 # do all of the rest from recovery
 
 echo "Starting recovery on the phone"
+fastboot -s $DEVICE_SERIAL --set-active=$OTHER_SLOT
+fastboot -s $DEVICE_SERIAL --set-active=$SLOT
 fastboot -s $DEVICE_SERIAL reboot bootloader
 fastboot -s $DEVICE_SERIAL boot $RECOVERY_IMAGE
 
